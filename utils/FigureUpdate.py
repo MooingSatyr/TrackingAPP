@@ -7,8 +7,8 @@ def get_polar_ra(df, zu_df, range_max):
     # Наносит основные точки на полярный график
     fig.add_trace(
         go.Scatterpolar(
-            r=df["Range"],
-            theta=df["Azimuth"],
+            r=df[" range"],
+            theta=df[" azimuth"],
             mode="markers",
             marker=dict(size=6, color="blue"),
             name="Range-Azimuth",
@@ -17,8 +17,8 @@ def get_polar_ra(df, zu_df, range_max):
 
     fig.add_trace(
         go.Scatterpolar(
-            r=zu_df["Range"],
-            theta=zu_df["Azimuth"],
+            r=zu_df[" range"],
+            theta=zu_df[" azimuth"],
             mode="markers+text",
             marker=dict(size=10, color=zu_df["Color"]),
             text=zu_df["Name"],
@@ -27,31 +27,6 @@ def get_polar_ra(df, zu_df, range_max):
         )
     )
 
-    fig.add_trace(
-        go.Scatterpolar(
-            r=[0, range_max * 1.03],
-            theta=[220, 220],
-            mode="lines",
-            line=dict(color="red", width=1),
-        )
-    )
-
-    fig.add_trace(
-        go.Scatterpolar(
-            r=[0, range_max * 1.03],
-            theta=[250, 250],
-            mode="lines",
-            line=dict(color="red", width=1),
-        )
-    )
-    fig.add_trace(
-        go.Scatterpolar(
-            r=[range_max * 1.03] * 6,
-            theta=[220, 226, 232, 238, 244, 250],
-            mode="lines",
-            line=dict(color="red", width=1),
-        )
-    )
     fig.update_layout(
         polar=dict(
             radialaxis=dict(range=[0, range_max * 1.05]),
@@ -62,8 +37,8 @@ def get_polar_ra(df, zu_df, range_max):
 
     fig.add_trace(
         go.Scatterpolar(
-            r=last_point["Range"],
-            theta=last_point["Azimuth"],
+            r=last_point[" range"],
+            theta=last_point[" azimuth"],
             mode="markers+text",
             marker=dict(size=12, color="red"),
             text=["🡇"],
@@ -74,48 +49,6 @@ def get_polar_ra(df, zu_df, range_max):
 
     fig.update_traces(showlegend=False)
 
-    return fig
-
-
-def get_polar_re(df, zu_df, range_max):
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatterpolar(
-            r=df["Range"],
-            theta=df["Elevation"],
-            mode="markers",
-            marker=dict(size=10, color="blue"),
-            name="Range-Elevation",
-        )
-    )
-
-    fig.add_trace(
-        go.Scatterpolar(
-            r=zu_df["Range"],
-            theta=zu_df["Elevation"],
-            mode="markers",
-            marker=dict(size=12, color=zu_df["Color"]),
-        )
-    )
-
-    last_point = df.iloc[[-1]]  # последняя точка
-
-    fig.add_scatterpolar(
-        r=last_point["Range"],
-        theta=last_point["Elevation"],
-        mode="markers+text",
-        marker=dict(size=12, color="red"),
-        text=["🡇"],
-        textposition="top center",
-    )
-
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(range=[0, range_max]),
-        ),
-        uirevision="fixed",
-    )
-    fig.update_traces(showlegend=False)
     return fig
 
 

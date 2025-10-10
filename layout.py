@@ -22,17 +22,82 @@ def create_layout(df):
             # 🔹 ВЕРХНЯЯ ЧАСТЬ: Фильтры
             html.Div(
                 [
-                    html.Label("Выберите файл:"),
-                    dcc.Dropdown(
-                        id="dropdown",
-                        options=[
-                            {"label": name, "value": name}
-                            for name in df["FileName"].unique()
+                    html.H4("📂 Данные", style={"marginBottom": "10px"}),
+                    # Dropdown + Upload в одной строке
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Выберите файл:", style={"fontWeight": "bold"}
+                                    ),
+                                    dcc.Dropdown(
+                                        id="dropdown",
+                                        options=[
+                                            {"label": name, "value": name}
+                                            for name in df["FileName"].unique()
+                                        ],
+                                        value=(
+                                            df["FileName"].iloc[0]
+                                            if not df.empty
+                                            else None
+                                        ),
+                                        placeholder="Выберите или загрузите файл...",
+                                        style={"width": "100%"},
+                                    ),
+                                ],
+                                style={"flex": "3", "marginRight": "10px"},
+                            ),
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Загрузка:", style={"fontWeight": "bold"}
+                                    ),
+                                    dcc.Upload(
+                                        id="upload-data",
+                                        children=html.Div(
+                                            [
+                                                "⬆️ ",
+                                                html.A(
+                                                    "Добавить файлы",
+                                                    style={"cursor": "pointer"},
+                                                ),
+                                            ]
+                                        ),
+                                        multiple=True,
+                                        style={
+                                            "width": "100%",
+                                            "height": "30px",
+                                            "lineHeight": "30px",
+                                            "borderWidth": "2px",
+                                            "borderStyle": "dashed",
+                                            "borderRadius": "10px",
+                                            "textAlign": "center",
+                                            "backgroundColor": "#f9f9f9",
+                                            "cursor": "pointer",
+                                        },
+                                    ),
+                                ],
+                                style={"flex": "2"},
+                            ),
                         ],
-                        value=df["FileName"].iloc[0] if not df.empty else None,
+                        style={
+                            "display": "flex",
+                            "gap": "10px",
+                            "alignItems": "end",
+                            "marginBottom": "10px",
+                        },
                     ),
                 ],
-                style={"margin": "10px", "width": "20%", "alignItems": "left"},
+                style={
+                    "width": "30%",
+                    "padding": "15px",
+                    "backgroundColor": "#ffffff",
+                    "border": "1px solid #dee2e6",
+                    "borderRadius": "10px",
+                    "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
+                    "margin": "10px 0",
+                },
             ),
             # 🔹 СРЕДНЯЯ ЧАСТЬ: Графики
             html.Div(
@@ -161,5 +226,6 @@ def create_layout(df):
                 },
             ),
             dcc.Store(id="plot_range_store", data={}),
+            dcc.Store(id="data-store", data=df.to_dict("records")),
         ]
     )
