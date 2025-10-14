@@ -1,73 +1,63 @@
 import plotly.graph_objects as go
+import plotly.express as px
 
 
-def get_polar_ra(df, zu_df, range_max):
-    fig = go.Figure()
+def get_figure(df, zu_df, axis_ranges, x_axis, y_axis):
 
-    # Наносит основные точки на полярный график
-    fig.add_trace(
-        go.Scatterpolar(
-            r=df[" range"],
-            theta=df[" azimuth"],
-            mode="markers",
-            marker=dict(size=6, color="blue"),
-            name="Range-Azimuth",
-        )
+    fig = px.scatter(df, x=x_axis, y=y_axis)
+
+    fig.update_traces(
+        customdata=df.index,
+        mode="markers",
+        marker={"color": "rgb(0, 0, 150)", "size": 12, "opacity": 0.7},
     )
 
     fig.add_trace(
-        go.Scatterpolar(
-            r=zu_df[" range"],
-            theta=zu_df[" azimuth"],
+        go.Scatter(
+            x=zu_df[x_axis].to_list(),
+            y=zu_df[y_axis].to_list(),
             mode="markers+text",
-            marker=dict(size=10, color=zu_df["Color"]),
             text=zu_df["Name"],
-            textposition="top center",
-            showlegend=False,
+            marker=dict(size=22, color=zu_df["Color"].to_list(), symbol="triangle-up"),
         )
     )
 
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(range=[0, range_max * 1.05]),
-        ),
-        uirevision="fixed",
-    )
-    last_point = df.iloc[[-1]]
+    # Добавляем отдельный trace для последней точки
+    last_point = df.iloc[[-1]]  # последняя точка
 
-    fig.add_trace(
-        go.Scatterpolar(
-            r=last_point[" range"],
-            theta=last_point[" azimuth"],
+    if y_axis == "y":
+        fig.add_scatter(
+            x=last_point["x"],
+            y=last_point[y_axis],
             mode="markers+text",
             marker=dict(size=12, color="red"),
             text=["🡇"],
             textposition="top center",
-            name="Последняя точка",
         )
+    else:
+        fig.add_scatter(
+            x=last_point["x"],
+            y=last_point[y_axis],
+            mode="markers+text",
+            marker=dict(size=12, color="red"),
+            text=["🡇"],
+            textposition="top center",
+        )
+
+    fig.update_layout(
+        xaxis=dict(range=axis_ranges["x"]),
+        yaxis=dict(range=axis_ranges[y_axis]),
+        uirevision="fixed",
     )
 
-    fig.update_traces(showlegend=False)
+    fig.update_traces(showlegend=False, selector=dict(type="scatter"))
 
     return fig
 
 
-def expand_range_max(max_val, pad_ratio=0.05):
-    """
-    Строит диапазон радиальной оси от 0 до max_val с расширением.
-
-    Args:
-        max_val (float): максимальное значение.
-        pad_ratio (float): процент расширения диапазона (0.05 = 5%).
-
-    Returns:
-        list: [0, max_val_padded]
-    """
-    if max_val is None:
-        return [0, 1]
-
-    if max_val == 0:
-        return [0, 1]  # защита от деления на ноль
-
-    pad = max_val * pad_ratio
-    return [0, max_val + pad]
+def expand_range(vmin, vmax, pad_ratio=0.2):
+    """Добавляем отступ к диапазону"""
+    if vmin == vmax:
+        return vmin - 1, vmax + 1
+    delta = (vmax - vmin) * pad_ratio
+    return vmin - delta, vmax + delta

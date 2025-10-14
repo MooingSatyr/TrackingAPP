@@ -1,7 +1,5 @@
 import dash
 from dash import dcc, html
-import pandas as pd
-import numpy as np
 
 
 def create_layout(df):
@@ -9,7 +7,7 @@ def create_layout(df):
         "width": "120px",
         "height": "40px",
         "margin": "0 10px",
-        "border": "1px solid #ced4da",
+        "border": "2px solid #adb5bd",
         "borderRadius": "6px",
         "backgroundColor": "#ffffff",
         "cursor": "pointer",
@@ -17,108 +15,160 @@ def create_layout(df):
         "boxShadow": "0 2px 4px rgba(0,0,0,0.05)",
     }
 
+    border_thick = "2px solid #adb5bd"
+
     return html.Div(
         [
-            # 🔹 ВЕРХНЯЯ ЧАСТЬ: Фильтры
             html.Div(
                 [
-                    html.H4("📂 Данные", style={"marginBottom": "10px"}),
-                    # Dropdown + Upload в одной строке
+                    # 🔹 ЛЕВАЯ КОЛОНКА
                     html.Div(
                         [
+                            # --- БЛОК ЗАГРУЗКИ ---
                             html.Div(
                                 [
-                                    html.Label(
-                                        "Выберите файл:", style={"fontWeight": "bold"}
+                                    html.H4(
+                                        "📂 Данные", style={"marginBottom": "10px"}
                                     ),
-                                    dcc.Dropdown(
-                                        id="dropdown",
-                                        options=[
-                                            {"label": name, "value": name}
-                                            for name in df["FileName"].unique()
+                                    html.Div(
+                                        [
+                                            html.Div(
+                                                [
+                                                    html.Label(
+                                                        "Выберите файл:",
+                                                        style={"fontWeight": "bold"},
+                                                    ),
+                                                    dcc.Dropdown(
+                                                        id="dropdown",
+                                                        options=[
+                                                            {
+                                                                "label": name,
+                                                                "value": name,
+                                                            }
+                                                            for name in df[
+                                                                "FileName"
+                                                            ].unique()
+                                                        ],
+                                                        value=(
+                                                            df["FileName"].iloc[0]
+                                                            if not df.empty
+                                                            else None
+                                                        ),
+                                                        placeholder="Выберите или загрузите файл...",
+                                                        style={"width": "100%"},
+                                                    ),
+                                                ],
+                                                style={
+                                                    "flex": "3",
+                                                    "marginRight": "10px",
+                                                },
+                                            ),
+                                            html.Div(
+                                                [
+                                                    html.Label(
+                                                        "Загрузка:",
+                                                        style={"fontWeight": "bold"},
+                                                    ),
+                                                    dcc.Upload(
+                                                        id="upload-data",
+                                                        children=html.Div(
+                                                            [
+                                                                html.Img(
+                                                                    src="/assets/upload.png",  # 👈 путь к PNG
+                                                                    style={
+                                                                        "width": "20px",
+                                                                        "height": "20px",
+                                                                        "marginRight": "8px",
+                                                                        "verticalAlign": "middle",
+                                                                    },
+                                                                ),
+                                                                html.A(
+                                                                    "Добавить файлы",
+                                                                    style={
+                                                                        "cursor": "pointer",
+                                                                        "verticalAlign": "middle",
+                                                                    },
+                                                                ),
+                                                            ],
+                                                            style={
+                                                                "display": "flex",
+                                                                "justifyContent": "center",
+                                                                "alignItems": "center",
+                                                                "gap": "6px",
+                                                            },
+                                                        ),
+                                                        multiple=True,
+                                                        style={
+                                                            "width": "100%",
+                                                            "height": "30px",
+                                                            "lineHeight": "30px",
+                                                            "borderWidth": "5px",
+                                                            "borderRadius": "10px",
+                                                            "textAlign": "center",
+                                                            "backgroundColor": "#f9f9f9",
+                                                            "cursor": "pointer",
+                                                        },
+                                                    ),
+                                                ],
+                                                style={"flex": "2"},
+                                            ),
                                         ],
-                                        value=(
-                                            df["FileName"].iloc[0]
-                                            if not df.empty
-                                            else None
-                                        ),
-                                        placeholder="Выберите или загрузите файл...",
-                                        style={"width": "100%"},
-                                    ),
-                                ],
-                                style={"flex": "3", "marginRight": "10px"},
-                            ),
-                            html.Div(
-                                [
-                                    html.Label(
-                                        "Загрузка:", style={"fontWeight": "bold"}
-                                    ),
-                                    dcc.Upload(
-                                        id="upload-data",
-                                        children=html.Div(
-                                            [
-                                                "⬆️ ",
-                                                html.A(
-                                                    "Добавить файлы",
-                                                    style={"cursor": "pointer"},
-                                                ),
-                                            ]
-                                        ),
-                                        multiple=True,
                                         style={
-                                            "width": "100%",
-                                            "height": "30px",
-                                            "lineHeight": "30px",
-                                            "borderWidth": "2px",
-                                            "borderStyle": "dashed",
-                                            "borderRadius": "10px",
-                                            "textAlign": "center",
-                                            "backgroundColor": "#f9f9f9",
-                                            "cursor": "pointer",
+                                            "display": "flex",
+                                            "gap": "10px",
+                                            "alignItems": "end",
+                                            "marginBottom": "10px",
                                         },
                                     ),
                                 ],
-                                style={"flex": "2"},
+                                style={
+                                    "width": "100%",
+                                    "padding": "12px",
+                                    "backgroundColor": "#ffffff",
+                                    "border": border_thick,
+                                    "borderRadius": "10px",
+                                    "boxShadow": "0 3px 8px rgba(0,0,0,0.05)",
+                                    "marginBottom": "15px",
+                                    "boxSizing": "border-box",
+                                },
+                            ),
+                            # --- ГРАФИК ---
+                            html.Div(
+                                [
+                                    html.Div(
+                                        [
+                                            dcc.Graph(
+                                                id="graph_x_y",
+                                                style={
+                                                    "width": "100%",
+                                                    "height": "700px",
+                                                },
+                                                config={"responsive": True},
+                                            )
+                                        ],
+                                        style={
+                                            "border": border_thick,
+                                            "borderRadius": "10px",
+                                            "backgroundColor": "#ffffff",
+                                            "padding": "12px",  # 👈 тот же padding
+                                            "boxShadow": "0 3px 8px rgba(0,0,0,0.05)",
+                                            "overflow": "hidden",
+                                            "boxSizing": "border-box",  # 👈 важно!
+                                        },
+                                    ),
+                                ],
+                                style={"width": "100%"},
                             ),
                         ],
                         style={
-                            "display": "flex",
-                            "gap": "10px",
-                            "alignItems": "end",
-                            "marginBottom": "10px",
+                            "flexBasis": "60%",
+                            "maxWidth": "60%",
+                            "minWidth": "400px",
                         },
                     ),
-                ],
-                style={
-                    "width": "30%",
-                    "padding": "15px",
-                    "backgroundColor": "#ffffff",
-                    "border": "1px solid #dee2e6",
-                    "borderRadius": "10px",
-                    "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
-                    "margin": "10px 0",
-                },
-            ),
-            # 🔹 СРЕДНЯЯ ЧАСТЬ: Графики
-            html.Div(
-                [
-                    dcc.Graph(
-                        id="graph_x_y",
-                        style={
-                            "width": "100%",
-                            "height": "800px",
-                            "display": "block",
-                        },
-                    )
-                ]
-            ),
-            # 🔹 НИЖНЯЯ ЧАСТЬ: Панель управления + слайдер времени
-            html.Div(
-                [
-                    # Верхняя строка: кнопки слева, скорость + чекбокс справа
+                    # 🔹 ПРАВАЯ КОЛОНКА — ПАНЕЛЬ
                     html.Div(
                         [
-                            # Кнопки старт/пауза (слева)
                             html.Div(
                                 [
                                     html.Button(
@@ -135,82 +185,93 @@ def create_layout(df):
                                     ),
                                 ],
                                 style={
-                                    "display": "inline-block",
-                                    "marginRight": "20px",
+                                    "display": "flex",
+                                    "justifyContent": "left",
+                                    "marginBottom": "20px",
                                 },
                             ),
-                            # Скорость + чекбокс (справа)
                             html.Div(
                                 [
-                                    html.Label("Скорость:"),
+                                    html.Label(
+                                        "Скорость:", style={"fontWeight": "bold"}
+                                    ),
                                     dcc.Slider(
                                         id="speed-slider",
                                         min=0.5,
                                         max=5,
                                         step=0.5,
-                                        value=0.5,
+                                        value=1.0,
                                         marks={
                                             i: f"{i:.1f}×" for i in [0.5, 1, 2, 3, 4, 5]
                                         },
                                     ),
+                                ],
+                                style={"marginBottom": "25px"},
+                            ),
+                            html.Div(
+                                [
                                     dcc.Checklist(
                                         id="show-history",
                                         options=[
                                             {
                                                 "label": "Показывать историю",
                                                 "value": "history",
-                                            }
+                                            },
                                         ],
                                         value=["history"],
                                         inline=True,
-                                        style={"marginTop": "10px"},
                                     ),
                                 ],
-                                style={
-                                    "display": "inline-block",
-                                    "width": "20%",
-                                },
+                                style={"marginBottom": "25px"},
+                            ),
+                            html.Div(
+                                [
+                                    html.Label(
+                                        "Диапазон времени:",
+                                        style={"fontWeight": "bold"},
+                                    ),
+                                    dcc.Slider(
+                                        id="time_slider",
+                                        min=0,
+                                        max=1,
+                                        value=1,
+                                        step=0.1,
+                                        tooltip={
+                                            "placement": "bottom",
+                                            "always_visible": False,
+                                        },
+                                    ),
+                                    html.Div(
+                                        id="slider-time-display",
+                                        style={"marginTop": "10px"},
+                                    ),
+                                ]
                             ),
                         ],
                         style={
-                            "display": "flex",
-                            "justifyContent": "space-between",
-                            "alignItems": "center",
-                            "marginBottom": "15px",
+                            "flexBasis": "38%",
+                            "maxWidth": "38%",
+                            "padding": "20px",
+                            "backgroundColor": "#f8f9fa",
+                            "border": border_thick,
+                            "borderRadius": "20px",
+                            "boxShadow": "0 3px 8px rgba(0,0,0,0.05)",
+                            "height": "fit-content",
                         },
-                    ),
-                    # Слайдер времени
-                    html.Div(
-                        [
-                            html.Label("Диапазон времени:"),
-                            dcc.Slider(
-                                id="time_slider",
-                                min=0,
-                                max=1,
-                                value=1,
-                                step=0.1,
-                                marks=None,
-                                tooltip={
-                                    "placement": "bottom",
-                                    "always_visible": False,
-                                },
-                            ),
-                            html.Div(
-                                id="slider-time-display", style={"marginTop": "10px"}
-                            ),
-                        ],
-                        style={"margin": "20px 10px"},
                     ),
                 ],
                 style={
-                    "margin": "20px 10px",
-                    "padding": "15px",
-                    "backgroundColor": "#f8f9fa",
-                    "border": "1px solid #dee2e6",
-                    "borderRadius": "20px",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "alignItems": "flex-start",
+                    "gap": "20px",
+                    "padding": "20px",
+                    "maxWidth": "100vw",
+                    "overflowX": "hidden",
                 },
             ),
-            # 🔹 Скрытые компоненты для автопроигрывания
+            # --- Скрытые компоненты ---
             dcc.Interval(
                 id="playback-timer", interval=1000, n_intervals=0, disabled=True
             ),

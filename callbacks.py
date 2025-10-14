@@ -6,7 +6,8 @@ import numpy as np
 import base64
 import io
 from datetime import datetime, timedelta
-from utils.FigureUpdate import get_polar_ra
+from utils.FigureUpdate import get_figure, expand_range
+from utils.sphreric_to_decart import to_decart
 
 
 def register_callbacks(app, df_init, zu_df):
@@ -37,8 +38,8 @@ def register_callbacks(app, df_init, zu_df):
                 content_type, content_string = content.split(",")
                 decoded = base64.b64decode(content_string)
                 df_new = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-
-                df_new["FileName"] = name  # добавляем имя файла
+                df_new["FileName"] = name  # добавляем имя файл
+                to_decart(df_new)
 
                 current_df = pd.concat([current_df, df_new], ignore_index=True)
                 print(f"✅ Файл {name} успешно добавлен.")
@@ -121,7 +122,20 @@ def register_callbacks(app, df_init, zu_df):
             "selected_file": selected_name,
         }
 
-        range_max = max(filtered_df[" range"].max(), zu_df[" range"].max())
+        range_max = {
+            "x": expand_range(
+                min(filtered_df["x"].min(), zu_df["x"].min()),
+                max(filtered_df["x"].max(), zu_df["x"].max()),
+            ),
+            "y": expand_range(
+                min(filtered_df["y"].min(), zu_df["y"].min()),
+                max(filtered_df["y"].max(), zu_df["y"].max()),
+            ),
+            "z": expand_range(
+                min(filtered_df["z"].min(), zu_df["z"].min()),
+                max(filtered_df["z"].max(), zu_df["z"].max()),
+            ),
+        }
 
         return tmin, tmax, tmin, step, marks, playback_state, range_max
 
@@ -219,7 +233,7 @@ def register_callbacks(app, df_init, zu_df):
         if filtered_df.empty:
             return no_update
 
-        fig_ra = get_polar_ra(filtered_df, zu_df, range_max)
+        fig_ra = get_figure(filtered_df, zu_df, range_max, "x", "y")
         return fig_ra
 
     # 🔹 6. Обновление текущего времени в Store
