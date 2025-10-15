@@ -10,7 +10,7 @@ from utils.FigureUpdate import get_figure, expand_range
 from utils.sphreric_to_decart import to_decart
 
 
-def register_callbacks(app, df_init, zu_df):
+def register_callbacks(app):
     """
     Регистрирует все callback'и приложения.
     df_init — исходный DataFrame, загруженный при старте.
@@ -27,7 +27,6 @@ def register_callbacks(app, df_init, zu_df):
         prevent_initial_call=True,
     )
     def upload_new_files(contents, filenames, data_records):
-        """Добавляет новые файлы в общий DataFrame и обновляет список выбора."""
         if not contents:
             raise PreventUpdate
 
@@ -38,7 +37,7 @@ def register_callbacks(app, df_init, zu_df):
                 content_type, content_string = content.split(",")
                 decoded = base64.b64decode(content_string)
                 df_new = pd.read_csv(io.StringIO(decoded.decode("utf-8")))
-                df_new["FileName"] = name  # добавляем имя файл
+                df_new["FileName"] = name
                 to_decart(df_new)
 
                 current_df = pd.concat([current_df, df_new], ignore_index=True)
@@ -72,51 +71,24 @@ def register_callbacks(app, df_init, zu_df):
         if filtered_df.empty or "time_stamp" not in filtered_df.columns:
             raise PreventUpdate
 
-        # убираем NaN в time_stamp
         filtered_df = filtered_df.dropna(subset=["time_stamp"])
         if filtered_df.empty:
             raise PreventUpdate
 
         tmin = float(filtered_df["time_stamp"].min())
         tmax = float(filtered_df["time_stamp"].max())
-
-        # защита от деления на 0
         if tmin == tmax:
             tmax = tmin + 1.0
 
         step = (tmax - tmin) / len(filtered_df)
 
-        num_marks = min(10, len(filtered_df))
-        marks = {}
-
-        # пытаемся получить базовое время из имени файла
-        try:
-            base_time = datetime.strptime(
-                (list(filtered_df["FileName"])[0].split(".")[0][-6:]), "%H%M%S"
-            )
-        except Exception:
-            base_time = datetime.strptime("000000", "%H%M%S")
-
-        for i in range(num_marks):
-            if num_marks > 1:
-                value = tmin + (tmax - tmin) * i / (num_marks - 1)
-            else:
-                value = tmin
-
-            if pd.isna(value):
-                continue  # пропускаем NaN
-
-            rounded_value = int(round(value))
-            label = (base_time + timedelta(seconds=rounded_value)).strftime("%H:%M:%S")
-            marks[rounded_value] = {
-                "label": label,
-                "style": {"fontSize": "11px", "whiteSpace": "nowrap"},
-            }
+        # Пустые метки - ничего не отображается под слайдером
+        marks = None
 
         playback_state = {
             "playing": False,
             "current_time": tmin,
-            "speed": 0.5,
+            "speed": 1.0,
             "min_time": tmin,
             "max_time": tmax,
             "selected_file": selected_name,
@@ -124,16 +96,16 @@ def register_callbacks(app, df_init, zu_df):
 
         range_max = {
             "x": expand_range(
-                min(filtered_df["x"].min(), zu_df["x"].min()),
-                max(filtered_df["x"].max(), zu_df["x"].max()),
+                filtered_df["x"].min(),
+                filtered_df["x"].max(),
             ),
             "y": expand_range(
-                min(filtered_df["y"].min(), zu_df["y"].min()),
-                max(filtered_df["y"].max(), zu_df["y"].max()),
+                filtered_df["y"].min(),
+                filtered_df["y"].max(),
             ),
             "z": expand_range(
-                min(filtered_df["z"].min(), zu_df["z"].min()),
-                max(filtered_df["z"].max(), zu_df["z"].max()),
+                filtered_df["z"].min(),
+                filtered_df["z"].max(),
             ),
         }
 
@@ -145,7 +117,7 @@ def register_callbacks(app, df_init, zu_df):
         Output("playback-timer", "disabled", allow_duplicate=True),
         Input("start-btn", "n_clicks"),
         Input("pause-btn", "n_clicks"),
-        Input("speed-slider", "value"),
+        Input("speed-dropdown", "value"),
         State("playback-store", "data"),
         State("dropdown", "value"),
         prevent_initial_call=True,
@@ -233,10 +205,10 @@ def register_callbacks(app, df_init, zu_df):
         if filtered_df.empty:
             return no_update
 
-        fig_ra = get_figure(filtered_df, zu_df, range_max, "x", "y")
+        fig_ra = get_figure(filtered_df, range_max, "x", "y")
         return fig_ra
 
-    # 🔹 6. Обновление текущего времени в Store
+    # 🔹 6. Обновление текущего времени
     @app.callback(
         Output("playback-store", "data", allow_duplicate=True),
         Input("time_slider", "value"),
@@ -247,7 +219,7 @@ def register_callbacks(app, df_init, zu_df):
         playback["current_time"] = current_time
         return playback
 
-    # 🔹 7. Подсветка активных кнопок
+    # 🔹 7. Подсветка кнопок
     @app.callback(
         Output("start-btn", "style"),
         Output("pause-btn", "style"),
@@ -276,32 +248,50 @@ def register_callbacks(app, df_init, zu_df):
 
         return start_style, pause_style
 
-    # 🔹 8. Отображение текущего времени под слайдером
+    # 🔹 8. Отображение времени под слайдером
     @app.callback(
-        Output("slider-time-display", "children"),
+        Output("time_slider", "tooltip"),
         Input("time_slider", "value"),
-        State("dropdown", "value"),
+        Input("dropdown", "value"),
         State("data-store", "data"),
     )
-    def display_time(slider_value, selected_file, data_records):
+    def update_tooltip_format(slider_value, selected_file, data_records):
+        if not selected_file or not data_records or slider_value is None:
+            raise PreventUpdate
+
         df = pd.DataFrame(data_records)
         filtered_df = df[df.FileName == selected_file]
 
         if filtered_df.empty:
             raise PreventUpdate
 
-        base_time = datetime.strptime(
-            (list(filtered_df["FileName"])[0].split(".")[0][-6:]), "%H%M%S"
-        )
+        try:
+            # Получаем базовое время из имени файла
+            base_time = datetime.strptime(
+                (list(filtered_df["FileName"])[0].split(".")[0][-6:]), "%H%M%S"
+            )
 
-        last_second = int(filtered_df["time_stamp"].iloc[-1])
-        current_time = (base_time + timedelta(seconds=int(slider_value))).strftime(
-            "%H:%M:%S"
-        )
-        last_time = (base_time + timedelta(seconds=last_second)).strftime("%H:%M:%S")
+            # Форматируем текущее время
+            current_time = (base_time + timedelta(seconds=int(slider_value))).strftime(
+                "%H:%M:%S"
+            )
 
-        return f"{current_time}/{last_time}"
+            # Возвращаем обновленные настройки tooltip
+            return {
+                "placement": "bottom",
+                "always_visible": True,
+                "template": current_time,  # Кастомный текст для tooltip
+            }
 
+        except Exception:
+            # В случае ошибки возвращаем значение по умолчанию
+            return {
+                "placement": "bottom",
+                "always_visible": True,
+                "template": f"{slider_value}s",  # Fallback - показываем просто секунды
+            }
+
+    # 🔹 9. Статистика
     @app.callback(
         Output("stats-content", "children"),
         State("data-store", "data"),
@@ -323,16 +313,16 @@ def register_callbacks(app, df_init, zu_df):
                 html.Ul(
                     [
                         html.Li(
-                            f"Количество записей:   {dots_count:,}".replace(",", " ")
+                            f"Количество записей: {dots_count:,}".replace(",", " ")
                         ),
                         html.Li(
-                            f"Диапазон по оси X:   {x_range[0]:.3f} — {x_range[1]:.3f}"
+                            f"Диапазон по оси X: {x_range[0]:.3f} — {x_range[1]:.3f}"
                         ),
                         html.Li(
-                            f"Диапазон по оси Y:   {y_range[0]:.3f} — {y_range[1]:.3f}"
+                            f"Диапазон по оси Y: {y_range[0]:.3f} — {y_range[1]:.3f}"
                         ),
                         html.Li(
-                            f"Диапазон по оси Z:   {z_range[0]:.3f} — {z_range[1]:.3f}"
+                            f"Диапазон по оси Z: {z_range[0]:.3f} — {z_range[1]:.3f}"
                         ),
                     ],
                     style={

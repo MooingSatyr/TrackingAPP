@@ -13,6 +13,10 @@ def create_layout(df):
         "cursor": "pointer",
         "transition": "all 0.2s ease-in-out",
         "boxShadow": "0 2px 4px rgba(0,0,0,0.05)",
+        "display": "flex",
+        "justifyContent": "center",
+        "alignItems": "center",
+        "gap": "4px",
     }
 
     border_thick = "2px solid #adb5bd"
@@ -144,7 +148,42 @@ def create_layout(df):
                                                     "height": "700px",
                                                 },
                                                 config={"responsive": True},
-                                            )
+                                            ),
+                                            # Контейнер для кнопки и чекбокса
+                                            html.Div(
+                                                [
+                                                    # Кнопка сохранить график - слева
+                                                    html.Button(
+                                                        "Сохранить график",
+                                                        id="save-btn",
+                                                        style={"marginRight": "10px"},
+                                                    ),
+                                                    # Чекбокс показать историю - справа
+                                                    html.Div(
+                                                        dcc.Checklist(
+                                                            id="show-history",
+                                                            options=[
+                                                                {
+                                                                    "label": "Показывать историю",
+                                                                    "value": "history",
+                                                                },
+                                                            ],
+                                                            value=["history"],
+                                                            inline=True,
+                                                        ),
+                                                        style={
+                                                            "marginLeft": "auto",  # Выравнивание по правому краю
+                                                        },
+                                                    ),
+                                                ],
+                                                style={
+                                                    "display": "flex",
+                                                    "justifyContent": "space-between",
+                                                    "alignItems": "center",
+                                                    "marginTop": "15px",
+                                                    "width": "100%",
+                                                },
+                                            ),
                                         ],
                                         style={
                                             "border": border_thick,
@@ -169,66 +208,91 @@ def create_layout(df):
                     # 🔹 ПРАВАЯ КОЛОНКА — ПАНЕЛЬ
                     html.Div(
                         [
+                            # --- Панель управления с кнопками и скоростью в одной строке ---
                             html.Div(
                                 [
-                                    # --- Панель управления ---
-                                    html.Button(
-                                        "▶️ Старт",
-                                        id="start-btn",
-                                        n_clicks=0,
-                                        style=button_style,
+                                    # Кнопки слева
+                                    html.Div(
+                                        [
+                                            html.Button(
+                                                [
+                                                    html.Img(
+                                                        src="/assets/play.png",
+                                                        style={
+                                                            "width": "20px",
+                                                            "height": "20px",
+                                                        },
+                                                    ),
+                                                ],
+                                                id="start-btn",
+                                                n_clicks=0,
+                                                style=button_style,
+                                            ),
+                                            html.Button(
+                                                [
+                                                    html.Img(
+                                                        src="/assets/stop.png",
+                                                        style={
+                                                            "width": "20px",
+                                                            "height": "20px",
+                                                        },
+                                                    ),
+                                                ],
+                                                id="pause-btn",
+                                                n_clicks=0,
+                                                style=button_style,
+                                            ),
+                                        ],
+                                        style={"display": "flex", "gap": "1px"},
                                     ),
-                                    html.Button(
-                                        "⏸️ Пауза",
-                                        id="pause-btn",
-                                        n_clicks=0,
-                                        style=button_style,
+                                    # Дропдаун скорости справа
+                                    html.Div(
+                                        [
+                                            html.Label(
+                                                "Скорость:",
+                                                style={
+                                                    "fontWeight": "bold",
+                                                    "marginRight": "10px",
+                                                    "whiteSpace": "nowrap",
+                                                },
+                                            ),
+                                            dcc.Dropdown(
+                                                id="speed-dropdown",
+                                                options=[
+                                                    {"label": "0.5×", "value": 0.5},
+                                                    {"label": "1×", "value": 1.0},
+                                                    {"label": "2×", "value": 2.0},
+                                                    {"label": "3×", "value": 3.0},
+                                                    {"label": "4×", "value": 4.0},
+                                                    {"label": "5×", "value": 5.0},
+                                                ],
+                                                value=1.0,
+                                                clearable=False,
+                                                style={
+                                                    "width": "100px",
+                                                    "minWidth": "100px",
+                                                },
+                                            ),
+                                        ],
+                                        style={
+                                            "display": "flex",
+                                            "alignItems": "center",
+                                            "marginLeft": "auto",  # Выравнивание по правому краю
+                                        },
                                     ),
                                 ],
                                 style={
                                     "display": "flex",
-                                    "justifyContent": "left",
+                                    "justifyContent": "space-between",
+                                    "alignItems": "center",
                                     "marginBottom": "20px",
+                                    "width": "100%",
                                 },
                             ),
                             html.Div(
                                 [
                                     html.Label(
-                                        "Скорость:", style={"fontWeight": "bold"}
-                                    ),
-                                    dcc.Slider(
-                                        id="speed-slider",
-                                        min=0.5,
-                                        max=5,
-                                        step=0.5,
-                                        value=1.0,
-                                        marks={
-                                            i: f"{i:.1f}×" for i in [0.5, 1, 2, 3, 4, 5]
-                                        },
-                                    ),
-                                ],
-                                style={"marginBottom": "25px", "width": "30%"},
-                            ),
-                            html.Div(
-                                [
-                                    dcc.Checklist(
-                                        id="show-history",
-                                        options=[
-                                            {
-                                                "label": "Показывать историю",
-                                                "value": "history",
-                                            },
-                                        ],
-                                        value=["history"],
-                                        inline=True,
-                                    ),
-                                ],
-                                style={"marginBottom": "25px"},
-                            ),
-                            html.Div(
-                                [
-                                    html.Label(
-                                        "Диапазон времени:",
+                                        "Время:",
                                         style={"fontWeight": "bold"},
                                     ),
                                     dcc.Slider(
@@ -239,12 +303,11 @@ def create_layout(df):
                                         step=0.1,
                                         tooltip={
                                             "placement": "bottom",
-                                            "always_visible": False,
+                                            "always_visible": True,
                                         },
                                     ),
                                     html.Div(
                                         id="slider-time-display",
-                                        style={"marginTop": "10px"},
                                     ),
                                 ],
                                 style={"marginBottom": "25px"},

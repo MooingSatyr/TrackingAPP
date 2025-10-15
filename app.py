@@ -12,7 +12,7 @@ app = Dash(__name__)
 
 app.layout = create_layout(df)
 
-register_callbacks(app, df, zu_df)
+register_callbacks(app)
 
 if __name__ == "__main__":
     app.run(debug=True)
