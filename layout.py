@@ -74,7 +74,7 @@ def create_layout(df):
                                                         children=html.Div(
                                                             [
                                                                 html.Img(
-                                                                    src="/assets/upload.png",  # 👈 путь к PNG
+                                                                    src="/assets/upload.png",
                                                                     style={
                                                                         "width": "20px",
                                                                         "height": "20px",
@@ -150,10 +150,10 @@ def create_layout(df):
                                             "border": border_thick,
                                             "borderRadius": "10px",
                                             "backgroundColor": "#ffffff",
-                                            "padding": "12px",  # 👈 тот же padding
+                                            "padding": "12px",
                                             "boxShadow": "0 3px 8px rgba(0,0,0,0.05)",
                                             "overflow": "hidden",
-                                            "boxSizing": "border-box",  # 👈 важно!
+                                            "boxSizing": "border-box",
                                         },
                                     ),
                                 ],
@@ -171,6 +171,7 @@ def create_layout(df):
                         [
                             html.Div(
                                 [
+                                    # --- Панель управления ---
                                     html.Button(
                                         "▶️ Старт",
                                         id="start-btn",
@@ -206,7 +207,7 @@ def create_layout(df):
                                         },
                                     ),
                                 ],
-                                style={"marginBottom": "25px"},
+                                style={"marginBottom": "25px", "width": "30%"},
                             ),
                             html.Div(
                                 [
@@ -245,14 +246,27 @@ def create_layout(df):
                                         id="slider-time-display",
                                         style={"marginTop": "10px"},
                                     ),
-                                ]
+                                ],
+                                style={"marginBottom": "25px"},
+                            ),
+                            # --- 📊 БЛОК СТАТИСТИКИ ---
+                            html.Div(
+                                id="stats-content",
+                                children="Здесь будет отображаться статистика...",
+                                style={
+                                    "border": border_thick,
+                                    "borderRadius": "8px",
+                                    "backgroundColor": "#ffffff",
+                                    "boxShadow": "0 2px 5px rgba(0,0,0,0.05)",
+                                    "minHeight": "80px",
+                                },
                             ),
                         ],
                         style={
                             "flexBasis": "38%",
                             "maxWidth": "38%",
                             "padding": "20px",
-                            "backgroundColor": "#f8f9fa",
+                            "backgroundColor": "#ffffffff",
                             "border": border_thick,
                             "borderRadius": "20px",
                             "boxShadow": "0 3px 8px rgba(0,0,0,0.05)",

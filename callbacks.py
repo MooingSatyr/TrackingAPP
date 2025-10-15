@@ -1,5 +1,5 @@
 import dash
-from dash import Input, Output, State, callback, no_update
+from dash import Input, Output, State, callback, no_update, html
 from dash.exceptions import PreventUpdate
 import pandas as pd
 import numpy as np
@@ -301,3 +301,53 @@ def register_callbacks(app, df_init, zu_df):
         last_time = (base_time + timedelta(seconds=last_second)).strftime("%H:%M:%S")
 
         return f"{current_time}/{last_time}"
+
+    @app.callback(
+        Output("stats-content", "children"),
+        State("data-store", "data"),
+        Input("dropdown", "value"),
+    )
+    def stats_update(records, selected_name):
+        if not records:
+            return html.Div("Нет данных для отображения.", style={"color": "#6c757d"})
+
+        df = pd.DataFrame(records)
+        df = df[df.FileName == selected_name]
+        dots_count = len(df)
+        x_range = [df["x"].min(), df["x"].max()]
+        y_range = [df["y"].min(), df["y"].max()]
+        z_range = [df["z"].min(), df["z"].max()]
+
+        return html.Div(
+            [
+                html.Ul(
+                    [
+                        html.Li(
+                            f"Количество записей:   {dots_count:,}".replace(",", " ")
+                        ),
+                        html.Li(
+                            f"Диапазон по оси X:   {x_range[0]:.3f} — {x_range[1]:.3f}"
+                        ),
+                        html.Li(
+                            f"Диапазон по оси Y:   {y_range[0]:.3f} — {y_range[1]:.3f}"
+                        ),
+                        html.Li(
+                            f"Диапазон по оси Z:   {z_range[0]:.3f} — {z_range[1]:.3f}"
+                        ),
+                    ],
+                    style={
+                        "listStyleType": "none",
+                        "paddingLeft": "1px",
+                        "lineHeight": "2",
+                    },
+                ),
+            ],
+            style={
+                "fontSize": "15px",
+                "color": "#212529",
+                "backgroundColor": "#ffffff",
+                "borderRadius": "8px",
+                "padding": "10px 15px",
+                "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
+            },
+        )
