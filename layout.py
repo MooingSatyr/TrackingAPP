@@ -149,36 +149,50 @@ def create_layout(df):
                                                 },
                                                 config={"responsive": True},
                                             ),
-                                            # Контейнер для кнопки и чекбокса
+                                            # Контейнер для кнопок слева
                                             html.Div(
                                                 [
-                                                    # Кнопка сохранить график - слева
-                                                    html.Button(
-                                                        "Сохранить график",
-                                                        id="save-btn",
-                                                        style={"marginRight": "10px"},
-                                                    ),
-                                                    # Чекбокс показать историю - справа
+                                                    # Кнопки слева
                                                     html.Div(
-                                                        dcc.Checklist(
-                                                            id="show-history",
-                                                            options=[
-                                                                {
-                                                                    "label": "Показывать историю",
-                                                                    "value": "history",
+                                                        [
+                                                            html.Button(
+                                                                "Сохранить график",
+                                                                id="save-btn",
+                                                                style={
+                                                                    "marginRight": "10px",
+                                                                    "width": "150px",
+                                                                    "height": "40px",
+                                                                    "border": "2px solid #adb5bd",
+                                                                    "borderRadius": "6px",
+                                                                    "backgroundColor": "#ffffff",
+                                                                    "cursor": "pointer",
+                                                                    "boxShadow": "0 2px 4px rgba(0,0,0,0.05)",
                                                                 },
-                                                            ],
-                                                            value=["history"],
-                                                            inline=True,
-                                                        ),
+                                                            ),
+                                                            html.Button(
+                                                                "Показать историю",
+                                                                id="history-toggle-btn",
+                                                                n_clicks=0,
+                                                                style={
+                                                                    "width": "150px",
+                                                                    "height": "40px",
+                                                                    "border": "2px solid #adb5bd",
+                                                                    "borderRadius": "6px",
+                                                                    "backgroundColor": "#ffffff",
+                                                                    "cursor": "pointer",
+                                                                    "boxShadow": "0 2px 4px rgba(0,0,0,0.05)",
+                                                                },
+                                                            ),
+                                                        ],
                                                         style={
-                                                            "marginLeft": "auto",  # Выравнивание по правому краю
+                                                            "display": "flex",
+                                                            "gap": "10px",
                                                         },
                                                     ),
                                                 ],
                                                 style={
                                                     "display": "flex",
-                                                    "justifyContent": "space-between",
+                                                    "justifyContent": "flex-start",  # Выравнивание по левому краю
                                                     "alignItems": "center",
                                                     "marginTop": "15px",
                                                     "width": "100%",

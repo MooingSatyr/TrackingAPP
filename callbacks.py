@@ -8,6 +8,7 @@ import io
 from datetime import datetime, timedelta
 from utils.FigureUpdate import get_figure, expand_range
 from utils.sphreric_to_decart import to_decart
+import plotly.graph_objects as go
 
 
 def register_callbacks(app):
@@ -178,9 +179,10 @@ def register_callbacks(app):
     # 🔹 5. Обновление графика
     @app.callback(
         Output("graph_x_y", "figure"),
+        Output("history-toggle-btn", "children"),
         Input("time_slider", "value"),
         Input("playback-store", "data"),
-        Input("show-history", "value"),
+        Input("history-toggle-btn", "n_clicks"),
         State("dropdown", "value"),
         State("plot_range_store", "data"),
         State("data-store", "data"),
@@ -188,7 +190,7 @@ def register_callbacks(app):
     def update_graphs(
         slider_time,
         playback_state,
-        show_history,
+        n_clicks,
         selected_name,
         range_max,
         data_records,
@@ -196,17 +198,19 @@ def register_callbacks(app):
         df = pd.DataFrame(data_records)
         filtered_df = df[df.FileName == selected_name]
 
-        if slider_time is not None:
-            if show_history:
-                filtered_df = filtered_df[filtered_df["time_stamp"] <= slider_time]
-            else:
-                filtered_df = filtered_df[filtered_df["time_stamp"] == slider_time]
+        if n_clicks % 2 != 0:
+            filtered_df = filtered_df[filtered_df["time_stamp"] <= slider_time]
+            new_text = "Скрыть историю"
+        else:
+            filtered_df = filtered_df[filtered_df["time_stamp"] <= slider_time]
+            filtered_df = filtered_df.iloc[[-1]]
+            new_text = "Показать историю"
 
         if filtered_df.empty:
             return no_update
 
         fig_ra = get_figure(filtered_df, range_max, "x", "y")
-        return fig_ra
+        return fig_ra, new_text
 
     # 🔹 6. Обновление текущего времени
     @app.callback(
@@ -341,3 +345,22 @@ def register_callbacks(app):
                 "boxShadow": "0 2px 6px rgba(0,0,0,0.05)",
             },
         )
+
+    @app.callback(
+        Output("save-btn", "children"),
+        Input("save-btn", "n_clicks"),
+        State("graph_x_y", "figure"),
+        State("dropdown", "value"),
+        prevent_initial_call=True,
+    )
+    def save_graph(n_clicks, fig_dict, selected_name):
+        if not fig_dict:
+            raise PreventUpdate
+
+        fig = go.Figure(fig_dict)
+
+        filename = f"screens/{selected_name.split('.')[0]}.png"
+
+        fig.write_image(filename)
+
+        return f"Сохранено: {filename}"

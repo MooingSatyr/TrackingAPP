@@ -26,7 +26,6 @@ def get_figure(df, axis_ranges, x_axis, y_axis):
     fig = px.scatter(df, x=x_axis, y=y_axis)
 
     fig.update_traces(
-        customdata=df.index,
         mode="markers",
         marker={"color": "rgb(0, 0, 150)", "size": 12, "opacity": 0.7},
     )
@@ -36,7 +35,7 @@ def get_figure(df, axis_ranges, x_axis, y_axis):
             x=(0,),
             y=(0,),
             mode="markers",
-            marker=dict(size=22, symbol="square", color="rgb(0, 150, 30)"),
+            marker=dict(size=22, symbol="square", color="rgb(0, 0, 30)"),
         )
     )
 
