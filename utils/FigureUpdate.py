@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime
+from datetime import datetime, timedelta
 
 months = {
     1: "января",
@@ -18,60 +18,86 @@ months = {
 }
 
 
-def get_figure(df, axis_ranges, x_axis, y_axis):
+def get_figure(df, axis_ranges, x_axis, y_axis, current_time):
+    """
+    Строит scatter-график по выбранным осям с строгим визуальным стилем и указанием текущего времени.
+    """
 
+    # Разбор даты и времени начала
     date_str, time_str = df.FileName.iloc[0].replace(".log", "").split("_")
-    dt = datetime.strptime(f"{date_str}_{time_str}", "%Y%m%d_%H%M%S")
+    dt_start = datetime.strptime(f"{date_str}_{time_str}", "%Y%m%d_%H%M%S")
 
+    # Текущее время
+    dt_current = dt_start + timedelta(seconds=current_time)
+    delta_ms = int(current_time * 1000)
+
+    # Основной scatter-график
     fig = px.scatter(df, x=x_axis, y=y_axis)
-
     fig.update_traces(
         mode="markers",
-        marker={"color": "rgb(0, 0, 150)", "size": 12, "opacity": 0.7},
+        marker={"color": "rgba(0, 51, 153, 0.7)", "size": 10},
     )
 
+    # Центр координат
     fig.add_trace(
         go.Scatter(
             x=(0,),
             y=(0,),
             mode="markers",
-            marker=dict(size=22, symbol="square", color="rgb(0, 0, 30)"),
+            marker=dict(size=16, symbol="square", color="rgba(0, 0, 0, 0.5)"),
         )
     )
 
-    # Добавляем отдельный trace для последней точки
-    last_point = df.iloc[[-1]]  # последняя точка
+    # Последняя точка
+    last_point = df.iloc[[-1]]
+    fig.add_scatter(
+        x=last_point["x"],
+        y=last_point[y_axis],
+        mode="markers",
+        marker=dict(size=10, color="crimson"),
+    )
 
-    if y_axis == "y":
-        fig.add_scatter(
-            x=last_point["x"],
-            y=last_point[y_axis],
-            mode="markers+text",
-            marker=dict(size=12, color="red"),
-            text=["🡇"],
-            textposition="top center",
-        )
-    else:
-        fig.add_scatter(
-            x=last_point["x"],
-            y=last_point[y_axis],
-            mode="markers+text",
-            marker=dict(size=12, color="red"),
-            text=["🡇"],
-            textposition="top center",
-        )
+    # Заголовок — строгий, с месяцами по-русски
+    start_str = f"{dt_start.day} {months[dt_start.month]} {dt_start.year} {dt_start.strftime('%H:%M:%S')}"
+    current_str = dt_current.strftime("%H:%M:%S.%f")[:-3]
 
+    title_text = (
+        f"Начало записи: {start_str}<br>"
+        f"<span style='color:#555; font-family:monospace;'>"
+        f"Текущее время: {current_str}"
+        f"</span>"
+    )
+
+    # Оформление графика
     fig.update_layout(
-        title={
-            "text": f"Начало записи: {dt.day} {months[dt.month]} {dt.year} {dt.strftime('%H:%M:%S')}",
-        },
-        xaxis=dict(range=axis_ranges["x"]),
-        yaxis=dict(range=axis_ranges[y_axis]),
+        dragmode="pan",
+        title=dict(
+            text=title_text,
+            x=0.5,
+            font=dict(family="Arial", size=14, color="#111"),
+        ),
+        xaxis=dict(
+            title=x_axis.upper(),
+            range=axis_ranges["x"],
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.1)",
+            zeroline=False,
+        ),
+        yaxis=dict(
+            title=y_axis.upper(),
+            range=axis_ranges[y_axis],
+            showgrid=True,
+            gridcolor="rgba(0,0,0,0.1)",
+            zeroline=False,
+        ),
+        font=dict(family="Arial", size=12, color="#222"),
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        margin=dict(l=60, r=40, t=80, b=60),
         uirevision="fixed",
     )
 
     fig.update_traces(showlegend=False, selector=dict(type="scatter"))
-
     return fig
 
 
