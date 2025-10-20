@@ -6,7 +6,7 @@ from utils.data import load_data
 import pandas as pd
 from utils.resource_path import resource_path
 
-df, zu_df = load_data(resource_path("Dima.xlsx"))
+df = load_data(resource_path("input.xlsx"))
 
 app = Dash(__name__)
 
